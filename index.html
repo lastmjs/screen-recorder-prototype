@@ -1,0 +1,54 @@
+<!DOCTYPE html>
+
+<html>
+    <head>
+        <title>Screen Recorder Prototype</title>
+    </head>
+
+    <body>
+        <h1>Screen Recorder Prototype</h1>
+
+        <button onclick="startRecording()">Start Recording</button>
+        <button onclick="stopRecording()">Stop Recording</button>
+
+        <script>
+
+            let recorder;
+            let finalStream;
+
+            async function startRecording() {
+                const audioStream = await window.navigator.mediaDevices.getUserMedia({
+                    audio: true
+                });
+                const videoStream = await window.navigator.mediaDevices.getDisplayMedia();
+                
+                finalStream = new MediaStream([...audioStream.getTracks(), ...videoStream.getTracks()]);
+
+                recorder = new MediaRecorder(finalStream);
+
+                recorder.addEventListener('dataavailable', (e) => {
+                    const link = window.document.createElement('a');
+
+                    link.setAttribute('href', window.URL.createObjectURL(e.data));
+                    link.setAttribute('download', `${new Date()}.webm`);
+
+                    document.body.appendChild(link);
+
+                    link.click();
+
+                    document.body.removeChild(link);
+                });
+
+                recorder.start();
+            }
+
+            async function stopRecording() {
+                recorder.stop();
+
+                finalStream.getTracks().forEach((track) => {
+                    track.stop();
+                });
+            }
+        </script>
+    </body>
+</html>
